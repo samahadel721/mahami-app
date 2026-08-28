@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مهامي - تسجيل الدخول</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #6C63FF, #FF6584);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo-emoji {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6C63FF, #FF6584);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .login-subtitle {
+            color: #57606F;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .google-btn {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            border: 2px solid #DFE4EA;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .google-btn:hover {
+            border-color: #6C63FF;
+            box-shadow: 0 4px 12px rgba(108,99,255,0.2);
+        }
+        
+        .google-btn img {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #A4B0BE;
+            font-size: 0.85rem;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #DFE4EA;
+        }
+        
+        .divider span {
+            padding: 0 15px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #DFE4EA;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #57606F;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #6C63FF;
+            border-bottom-color: #6C63FF;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-field {
+            margin-bottom: 15px;
+        }
+        
+        .form-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #57606F;
+        }
+        
+        .form-field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #DFE4EA;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .form-field input:focus {
+            border-color: #6C63FF;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6C63FF, #8B83FF);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108,99,255,0.4);
+        }
+        
+        .forgot-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .forgot-link a {
+            color: #6C63FF;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .message.success {
+            background: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+        
+        .message.error {
+            background: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+        
+        .message.info {
+            background: #D1ECF1;
+            color: #0C5460;
+            border: 1px solid #BEE5EB;
+        }
+        
+        .user-info {
+            background: #F8F9FD;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .user-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        
+        .user-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .user-info p {
+            font-size: 0.85rem;
+            color: #57606F;
+            margin-bottom: 5px;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: #FF4757;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .credit {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #DFE4EA;
+            font-size: 0.8rem;
+            color: #A4B0BE;
+        }
+        
+        .credit-name {
+            color: #6C63FF;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-logo">
+            <span class="login-logo-emoji">📋</span>
+            <h1 class="login-title">مهامي</h1>
+            <p class="login-subtitle">نظّم يومك بذكاء</p>
+        </div>
+
+        <!-- Message Box -->
+        <div id="messageBox" class="message"></div>
+
+        <!-- User Info (بعد تسجيل الدخول) -->
+        <div id="userInfo" class="user-info">
+            <img id="userAvatar" src="" alt="Avatar">
+            <h3 id="userName"></h3>
+            <p id="userEmail"></p>
+            <p id="userVerified"></p>
+            <button class="logout-btn" onclick="handleLogout()">تسجيل الخروج</button>
+        </div>
+
+        <!-- Login Form (قبل تسجيل الدخول) -->
+        <div id="loginForm">
+            <!-- Google Sign-In -->
+            <button class="google-btn" onclick="handleGoogleSignIn()">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIyLjU2IDEyLjI1YzAtLjc4LS4wNy0xLjUzLS4yLTIuMjVIMTJ2NC4yNmg1LjkyYy0uMjYgMS4zNy0xLjA0IDIuNTMtMi4yMSAzLjMxdjIuNzdoMy41N2MyLjA4LTEuOTIgMy4yOC00Ljc0IDMuMjgtOC4wM3oiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTEyIDIzYzIuOTcgMCA1LjQ2LS45OCA3LjI4LTIuNjZsLTMuNTctMi43N2MtLjk4LjY2LTIuMjMgMS4wNi0zLjcxIDEuMDYtMi44NiAwLTUuMjktMS45NC02LjE2LTQuNTVIMi4xOHYyLjg0QzMuOTkgMjAuNTMgNy43IDIzIDEyIDIzeiIgZmlsbD0iIzM0QTg1MyIvPgo8cGF0aCBkPSJNNS44NCAxNC4wOWMtLjIyLS42Ni0uMzUtMS4zNi0uMzUtMi4wOXMuMTMtMS40My4zNS0yLjA5VjcuMDdIMi4xOEMxLjQzIDguNTUgMSAxMC4yMiAxIDEyczEuNDMgMy40NSAyLjE4IDQuOTNsNS44NCAxNC4wOXoiIGZpbGw9IiNGQkJDMDUiLz4KPHBhdGggZD0iTTEyIDUuMzhjMS42MiAwIDMuMDYuNTYgNC4yMSAxLjY0bDMuMTUtMy4xNUM3LjQ1IDIuMDkgNC45Ny45IDMuMDkgMi4wN0w1Ljg0IDcuMDdjLjg3LTIuNjEgMy4zLTQuNTUgNi4xNi00LjU1eiIgZmlsbD0iI0VBNDEzNSIvPgo8L3N2Zz4K" alt="Google">
+                <span>تسجيل الدخول بحساب Google</span>
+            </button>
+
+            <div class="divider">
+                <span>أو</span>
+            </div>
+
+            <!-- Tabs: Sign In / Sign Up -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('signin')">تسجيل الدخول</button>
+                <button class="tab" onclick="switchTab('signup')">حساب جديد</button>
+            </div>
+
+            <!-- Sign In Form -->
+            <div id="signin" class="tab-content active">
+                <form onsubmit="handleSignIn(event)">
+                    <div class="form-field">
+                        <label>📧 البريد الإلكتروني</label>
+                        <input type="email" id="signinEmail" required 
+                               placeholder="example@email.com">
+                    </div>
+                    <div class="form-field">
+                        <label>🔒 كلمة السر</label>
+                        <input type="password" id="signinPassword" required 
+                               placeholder="••••••••" minlength="6">
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        تسجيل الدخول
+                    </button>
+                    <div class="forgot-link">
+                        <a href="#" onclick="handleForgotPassword()">نسيت كلمة السر؟</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div id="signup" class="tab-content">
+                <form onsubmit="handleSignUp(event)">
+                    <div class="form-field">
+                        <label>👤 الاسم</label>
+                        <input type="text" id="signupName" required 
+                               placeholder="اسمك الكامل">
+                    </div>
+                    <div class="form-field">
+                        <label>📧 البريد الإلكتروني</label>
+                        <input type="email" id="signupEmail" required 
+                               placeholder="example@email.com">
+                    </div>
+                    <div class="form-field">
+                        <label>🔒 كلمة السر</label>
+                        <input type="password" id="signupPassword" required 
+                               placeholder="6 أحرف على الأقل" minlength="6">
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        إنشاء حساب
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="credit">
+            تم التصميم بواسطة <span class="credit-name">يوسف عادل</span>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-auth-compat.js"></script>
+    
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwRIuqlNUi7mfL5kWf_8pNcRkG4xKa_IQ",
+            authDomain: "mahami-app-b75f8.firebaseapp.com",
+            projectId: "mahami-app-b75f8",
+            storageBucket: "mahami-app-b75f8.firebasestorage.app",
+            messagingSenderId: "367991590064",
+            appId: "1:367991590064:web:878a51ff999998cb617f75",
+            measurementId: "G-V4KHGQ3EGY"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        console.log('✅ Firebase initialized');
+
+        // Listen for auth state changes
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                showUserInfo(user);
+            } else {
+                showLoginForm();
+            }
+        });
+
+        // Show message
+        function showMessage(text, type = 'info') {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = 'message ' + type;
+            box.style.display = 'block';
+            setTimeout(() => {
+                box.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show user info
+        function showUserInfo(user) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            
+            document.getElementById('userAvatar').src = user.photoURL || 
+                'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%236C63FF" width="100" height="100"/><text x="50" y="60" font-size="50" text-anchor="middle" fill="white">👤</text></svg>';
+            document.getElementById('userName').textContent = user.displayName || 'مستخدم';
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userVerified').textContent = user.emailVerified ? 
+                '✅ الإيميل موثق' : '⚠️ الإيميل غير موثق';
+            
+            showMessage('تم تسجيل الدخول بنجاح! 🎉', 'success');
+        }
+
+        // Show login form
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+
+        // Google Sign-In
+        async function handleGoogleSignIn() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await firebase.auth().signInWithPopup(provider);
+                console.log('✅ Google Sign-In successful:', result.user);
+            } catch (error) {
+                console.error('❌ Google Sign-In error:', error);
+                showMessage(getErrorMessage(error), 'error');
+            }
+        }
+
+        // Email Sign-In
+        async function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signinEmail').value;
+            const password = document.getElementById('signinPassword').value;
+            
+            try {
+                const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+                console.log('✅ Email Sign-In successful:', result.user);
+            } catch (error) {
+                console.error('❌ Email Sign-In error:', error);
+                showMessage(getErrorMessage(error), 'error');
+            }
+        }
+
+        // Email Sign-Up
+        async function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
+            try {
+                const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                await result.user.updateProfile({ displayName: name });
+                await result.user.sendEmailVerification();
+                
+                showMessage('تم إنشاء الحساب! 🎉 تحقق من إيميلك لتأكيد الحساب', 'success');
+                console.log('✅ Sign-Up successful:', result.user);
+            } catch (error) {
+                console.error('❌ Sign-Up error:', error);
+                showMessage(getErrorMessage(error), 'error');
+            }
+        }
+
+        // Forgot Password
+        async function handleForgotPassword() {
+            const email = prompt('اكتب إيميلك:');
+            if (!email) return;
+            
+            try {
+                await firebase.auth().sendPasswordResetEmail(email);
+                showMessage('تم إرسال رابط استعادة كلمة السر للإيميل! 📧', 'success');
+            } catch (error) {
+                console.error('❌ Reset password error:', error);
+                showMessage(getErrorMessage(error), 'error');
+            }
+        }
+
+        // Logout
+        async function handleLogout() {
+            try {
+                await firebase.auth().signOut();
+                showMessage('تم تسجيل الخروج 👋', 'info');
+                console.log('✅ Logged out');
+            } catch (error) {
+                console.error('❌ Logout error:', error);
+                showMessage('خطأ في تسجيل الخروج', 'error');
+            }
+        }
+
+        // Get error message in Arabic
+        function getErrorMessage(error) {
+            const messages = {
+                'auth/user-not-found': 'مفيش حساب بالإيميل ده',
+                'auth/wrong-password': 'كلمة السر غلط',
+                'auth/invalid-email': 'الإيميل غير صحيح',
+                'auth/email-already-in-use': 'الإيميل ده مستخدم قبل كده',
+                'auth/weak-password': 'كلمة السر ضعيفة (6 أحرف على الأقل)',
+                'auth/too-many-requests': 'محاولات كتير، استنى شوية',
+                'auth/popup-closed-by-user': 'تم إلغاء العملية',
+                'auth/popup-blocked': 'المتصفح منع النافذة المنبثقة، اسمح بيها من الإعدادات'
+            };
+            return messages[error.code] || error.message || 'حصل خطأ، حاول تاني';
+        }
+    </script>
+</body>
+</html>
