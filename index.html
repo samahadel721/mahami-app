@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="مهامي">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#6C63FF">
+    <title>مهامي - منظّم المهام الذكي</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <!-- ===== Lock Screen ===== -->
+    <div class="lock-screen" id="lockScreen">
+        <div class="lock-box">
+            <img src="assets/logo.jpg" alt="مهامي" class="lock-logo">
+            <h2>مهامي</h2>
+            <p>أدخل رمز PIN للدخول</p>
+            <div class="pin-dots" id="pinDots">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="pin-pad" id="pinPad">
+                <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button>
+                <button data-n="4">4</button><button data-n="5">5</button><button data-n="6">6</button>
+                <button data-n="7">7</button><button data-n="8">8</button><button data-n="9">9</button>
+                <button class="empty"></button><button data-n="0">0</button><button class="del" data-action="del">⌫</button>
+            </div>
+            <button class="btn-link" onclick="PIN.skip()">تخطي</button>
+        </div>
+    </div>
+
+    <!-- ===== Toast Container ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ===== Confetti Canvas ===== -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- ===== Undo Bar ===== -->
+    <div class="undo-bar" id="undoBar">
+        <span id="undoText">تم الحذف</span>
+        <button class="undo-btn" onclick="Undo.undo()">تراجع</button>
+    </div>
+
+    <!-- ===== App Shell ===== -->
+    <div class="app-shell" id="appShell">
+
+        <!-- Top App Bar -->
+        <header class="app-bar" id="appBar">
+            <div class="app-bar-content">
+                <div class="app-bar-title-wrap">
+                    <div class="app-bar-logo-wrap">
+                        <img src="assets/logo.jpg" alt="مهامي" class="app-bar-logo">
+                        <div>
+                            <h1 class="app-bar-title" id="screenTitle">مهامي</h1>
+                            <p class="app-bar-subtitle" id="dateDisplay"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-bar-actions">
+                    <button class="icon-btn" onclick="App.toggleTheme()" title="المظهر" id="themeBtn">🌙</button>
+                    <button class="icon-btn" onclick="App.requestNotifications()" title="الإشعارات">🔔</button>
+                    <button class="icon-btn" onclick="App.cycleColor()" title="اللون">🎨</button>
+                </div>
+            </div>
+            <div class="stats-row" id="statsRow">
+                <div class="mini-stat"><span class="mini-stat-num" id="statToday">0</span><span class="mini-stat-lbl">اليوم</span></div>
+                <div class="mini-stat"><span class="mini-stat-num" id="statPending">0</span><span class="mini-stat-lbl">قيد التنفيذ</span></div>
+                <div class="mini-stat"><span class="mini-stat-num" id="statDone">0</span><span class="mini-stat-lbl">مكتملة</span></div>
+                <div class="mini-stat warn"><span class="mini-stat-num" id="statOverdue">0</span><span class="mini-stat-lbl">متأخرة</span></div>
+            </div>
+            <!-- Streak Banner -->
+            <div class="streak-banner" id="streakBanner" style="display:none">
+                <span class="streak-fire">🔥</span>
+                <span class="streak-text" id="streakText">0 يوم متتالي!</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+
+            <!-- ===== SCREEN: HOME ===== -->
+            <section class="screen active" id="screenHome">
+                <div class="search-filter-bar">
+                    <div class="search-field">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="ابحث..." oninput="UI.handleSearch()">
+                        <button class="clear-btn" id="searchClear" onclick="UI.clearSearch()">✕</button>
+                    </div>
+                    <div class="chip-scroll" id="chipScroll">
+                        <button class="chip active" data-cat="all" onclick="UI.filterByCategory('all')">الكل</button>
+                        <button class="chip" data-cat="درس" onclick="UI.filterByCategory('درس')">📚 درس</button>
+                        <button class="chip" data-cat="امتحان" onclick="UI.filterByCategory('امتحان')">📝 امتحان</button>
+                        <button class="chip" data-cat="واجب" onclick="UI.filterByCategory('واجب')">📖 واجب</button>
+                        <button class="chip" data-cat="موعد" onclick="UI.filterByCategory('موعد')">📅 موعد</button>
+                        <button class="chip" data-cat="شخصي" onclick="UI.filterByCategory('شخصي')">👤 شخصي</button>
+                        <button class="chip" data-cat="أخرى" onclick="UI.filterByCategory('أخرى')">📌 أخرى</button>
+                    </div>
+                </div>
+
+                <!-- Suggestions banner -->
+                <div class="suggestion-card" id="suggestionCard" style="display:none">
+                    <div class="suggestion-icon">💡</div>
+                    <div class="suggestion-content">
+                        <div class="suggestion-text" id="suggestionText"></div>
+                        <div class="suggestion-actions" id="suggestionActions"></div>
+                    </div>
+                    <button class="suggestion-close" onclick="Suggestions.dismiss()">✕</button>
+                </div>
+
+                <!-- Weekly Goal -->
+                <div class="goal-card" id="goalCard">
+                    <div class="goal-header">
+                        <span class="goal-title">🎯 هدف الأسبوع</span>
+                        <button class="goal-edit" onclick="Goals.openEditor()">⚙️</button>
+                    </div>
+                    <div class="goal-progress-wrap">
+                        <div class="goal-bar">
+                            <div class="goal-fill" id="goalFill"></div>
+                        </div>
+                        <span class="goal-text" id="goalText">0/0</span>
+                    </div>
+                </div>
+
+                <div class="task-list" id="taskList"></div>
+            </section>
+
+            <!-- ===== SCREEN: FOCUS (Pomodoro) ===== -->
+            <section class="screen" id="screenFocus">
+                <div class="pomodoro-container">
+                    <div class="pomo-modes">
+                        <button class="pomo-mode active" data-mode="focus" onclick="Pomodoro.setMode('focus')">تركيز 25د</button>
+                        <button class="pomo-mode" data-mode="short" onclick="Pomodoro.setMode('short')">راحة 5د</button>
+                        <button class="pomo-mode" data-mode="long" onclick="Pomodoro.setMode('long')">راحة 15د</button>
+                    </div>
+
+                    <div class="pomo-timer-wrap">
+                        <svg class="pomo-ring" viewBox="0 0 220 220">
+                            <circle class="pomo-ring-bg" cx="110" cy="110" r="100"></circle>
+                            <circle class="pomo-ring-fill" cx="110" cy="110" r="100" id="pomoRing"></circle>
+                        </svg>
+                        <div class="pomo-time" id="pomoTime">25:00</div>
+                        <div class="pomo-label" id="pomoLabel">وقت التركيز</div>
+                    </div>
+
+                    <div class="pomo-task" id="pomoTask">
+                        <span id="pomoTaskLabel">لم يتم اختيار مهمة</span>
+                        <button class="btn-link" onclick="Pomodoro.selectTask()">اختر مهمة</button>
+                    </div>
+
+                    <div class="pomo-controls">
+                        <button class="pomo-btn secondary" onclick="Pomodoro.reset()" title="إعادة">↺</button>
+                        <button class="pomo-btn primary" id="pomoStartBtn" onclick="Pomodoro.toggle()">▶</button>
+                        <button class="pomo-btn secondary" onclick="Pomodoro.skip()" title="تخطي">⏭</button>
+                    </div>
+
+                    <div class="pomo-stats">
+                        <div class="pomo-stat">
+                            <div class="pomo-stat-num" id="pomoCount">0</div>
+                            <div class="pomo-stat-lbl">جلسات اليوم</div>
+                        </div>
+                        <div class="pomo-stat">
+                            <div class="pomo-stat-num" id="pomoMinutes">0</div>
+                            <div class="pomo-stat-lbl">دقائق تركيز</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SCREEN: LEARN (Subjects + GPA + Goals) ===== -->
+            <section class="screen" id="screenLearn">
+                <div class="tabs-bar">
+                    <button class="tab-btn active" data-tab="subjects" onclick="UI.switchLearnTab('subjects')">📚 المواد</button>
+                    <button class="tab-btn" data-tab="gpa" onclick="UI.switchLearnTab('gpa')">🧮 المعدل</button>
+                    <button class="tab-btn" data-tab="goals" onclick="UI.switchLearnTab('goals')">🎯 الأهداف</button>
+                    <button class="tab-btn" data-tab="notes" onclick="UI.switchLearnTab('notes')">📝 ملاحظات</button>
+                </div>
+
+                <div class="tab-content active" id="tabSubjects">
+                    <div class="subjects-list" id="subjectsList"></div>
+                    <button class="btn btn-primary btn-block" onclick="Subjects.openAdd()">➕ إضافة مادة</button>
+                </div>
+
+                <div class="tab-content" id="tabGpa">
+                    <div class="gpa-summary">
+                        <div class="gpa-big" id="gpaValue">0.00</div>
+                        <div class="gpa-label">المعدل التراكمي</div>
+                    </div>
+                    <div class="gpa-list" id="gpaList"></div>
+                    <button class="btn btn-primary btn-block" onclick="GPA.openAdd()">➕ إضافة درجة</button>
+                </div>
+
+                <div class="tab-content" id="tabGoals">
+                    <div id="goalsList"></div>
+                    <button class="btn btn-primary btn-block" onclick="Goals.openAdd()">➕ إضافة هدف</button>
+                </div>
+
+                <div class="tab-content" id="tabNotes">
+                    <div class="notes-list" id="notesList"></div>
+                    <button class="btn btn-primary btn-block" onclick="Notes.openAdd()">➕ ملاحظة جديدة</button>
+                </div>
+            </section>
+
+            <!-- ===== SCREEN: STATS ===== -->
+            <section class="screen" id="screenStats">
+                <div class="tabs-bar">
+                    <button class="tab-btn active" data-tab="overview" onclick="UI.switchStatsTab('overview')">📊 نظرة</button>
+                    <button class="tab-btn" data-tab="badges" onclick="UI.switchStatsTab('badges')">🏅 شارات</button>
+                    <button class="tab-btn" data-tab="reports" onclick="UI.switchStatsTab('reports')">📈 تقارير</button>
+                    <button class="tab-btn" data-tab="calendar" onclick="UI.switchStatsTab('calendar')">📅 تقويم</button>
+                </div>
+
+                <div class="tab-content active" id="tabOverview">
+                    <div class="stats-grid">
+                        <div class="stat-big total"><div class="stat-big-icon">📊</div><div class="stat-big-num" id="bigTotal">0</div><div class="stat-big-lbl">إجمالي</div></div>
+                        <div class="stat-big done"><div class="stat-big-icon">✅</div><div class="stat-big-num" id="bigDone">0</div><div class="stat-big-lbl">مكتملة</div></div>
+                        <div class="stat-big pending"><div class="stat-big-icon">⏳</div><div class="stat-big-num" id="bigPending">0</div><div class="stat-big-lbl">قيد التنفيذ</div></div>
+                        <div class="stat-big overdue"><div class="stat-big-icon">⚠️</div><div class="stat-big-num" id="bigOverdue">0</div><div class="stat-big-lbl">متأخرة</div></div>
+                    </div>
+
+                    <div class="card-section">
+                        <h3 class="card-title">🎯 نسبة الإنجاز</h3>
+                        <div class="progress-ring-wrap">
+                            <svg class="progress-ring" viewBox="0 0 120 120">
+                                <circle class="progress-bg" cx="60" cy="60" r="52"></circle>
+                                <circle class="progress-fill" cx="60" cy="60" r="52" id="progressCircle"></circle>
+                            </svg>
+                            <div class="progress-text" id="progressText">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="card-section">
+                        <h3 class="card-title">📂 حسب التصنيف</h3>
+                        <div class="category-stats" id="categoryStats"></div>
+                    </div>
+
+                    <div class="card-section">
+                        <h3 class="card-title">🔥 أيام الأسبوع</h3>
+                        <div class="weekday-chart" id="weekdayChart"></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="tabBadges">
+                    <div class="badges-grid" id="badgesGrid"></div>
+                </div>
+
+                <div class="tab-content" id="tabReports">
+                    <div class="reports-list">
+                        <button class="btn btn-primary btn-block" onclick="Reports.generateWeekly()">📊 تقرير أسبوعي</button>
+                        <button class="btn btn-info btn-block" onclick="Reports.generateMonthly()">📈 تقرير شهري</button>
+                        <button class="btn btn-success btn-block" onclick="Reports.exportPDF()">📄 تصدير PDF</button>
+                    </div>
+                    <div id="reportOutput" class="report-output"></div>
+                </div>
+
+                <div class="tab-content" id="tabCalendar">
+                    <div class="calendar-header">
+                        <button class="cal-nav" onclick="Calendar.prev()">›</button>
+                        <div class="cal-month" id="calMonth"></div>
+                        <button class="cal-nav" onclick="Calendar.next()">‹</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </section>
+
+            <!-- ===== SCREEN: SETTINGS ===== -->
+            <section class="screen" id="screenSettings">
+                <div class="settings-group">
+                    <div class="settings-title">⚙️ الإعدادات العامة</div>
+                    <div class="settings-list">
+                        <div class="setting-item" onclick="App.requestNotifications()">
+                            <span class="setting-icon">🔔</span>
+                            <div class="setting-info"><div class="setting-title">الإشعارات</div><div class="setting-desc" id="notifStatus">اضغط للتفعيل</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <div class="setting-item" onclick="App.toggleTheme()">
+                            <span class="setting-icon">🎨</span>
+                            <div class="setting-info"><div class="setting-title">الوضع الليلي</div><div class="setting-desc" id="themeStatus">مطفأ</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <div class="setting-item" onclick="Themes.openPicker()">
+                            <span class="setting-icon">🌈</span>
+                            <div class="setting-info"><div class="setting-title">لون التطبيق</div><div class="setting-desc" id="colorStatus">بنفسجي</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <div class="setting-item" onclick="I18n.openPicker()">
+                            <span class="setting-icon">🌍</span>
+                            <div class="setting-info"><div class="setting-title">اللغة</div><div class="setting-desc" id="langStatus">العربية</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <div class="setting-item" onclick="PIN.openSetup()">
+                            <span class="setting-icon">🔒</span>
+                            <div class="setting-info"><div class="setting-title">قفل التطبيق</div><div class="setting-desc" id="pinStatus">غير مفعل</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">📚 القوالب والموارد</div>
+                    <div class="settings-list">
+                        <div class="setting-item" onclick="Templates.openLibrary()">
+                            <span class="setting-icon">📋</span>
+                            <div class="setting-info"><div class="setting-title">قوالب جاهزة</div><div class="setting-desc">يوم دراسي، أسبوع امتحانات...</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <div class="setting-item" onclick="App.exportData()">
+                            <span class="setting-icon">📤</span>
+                            <div class="setting-info"><div class="setting-title">تصدير البيانات</div><div class="setting-desc">نسخة احتياطية JSON</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <div class="setting-item" onclick="document.getElementById('importFile').click()">
+                            <span class="setting-icon">📥</span>
+                            <div class="setting-info"><div class="setting-title">استيراد البيانات</div><div class="setting-desc">استعادة نسخة</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <input type="file" id="importFile" accept=".json" style="display:none" onchange="App.importData(event)">
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">🧹 إدارة البيانات</div>
+                    <div class="settings-list">
+                        <div class="setting-item danger" onclick="Tasks.clearCompleted()">
+                            <span class="setting-icon">✨</span>
+                            <div class="setting-info"><div class="setting-title">حذف المكتملة</div><div class="setting-desc">تنظيف القائمة</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                        <div class="setting-item danger" onclick="App.clearAllData()">
+                            <span class="setting-icon">⚠️</span>
+                            <div class="setting-info"><div class="setting-title">حذف الكل</div><div class="setting-desc">لا يمكن التراجع</div></div>
+                            <span class="setting-arrow">‹</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-card">
+                    <img src="assets/logo.jpg" alt="مهامي" class="about-logo">
+                    <div class="about-name">مهامي</div>
+                    <div class="about-ver">الإصدار 3.0.0 - الإصدار الكامل</div>
+                    <div class="about-dev">تصميم وتطوير: <strong>يوسف عادل</strong></div>
+                    <div class="about-desc">يعمل بدون إنترنت 💚 | كل المميزات مجانية</div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer مع توقيع المصمم (يتم إنشاؤه ديناميكياً من AppConfig) -->
+        <div id="appFooterContainer"></div>
+
+        <!-- FAB -->
+        <button class="fab" id="fab" onclick="Modal.open()" aria-label="إضافة">
+            <span class="fab-icon">+</span>
+        </button>
+
+        <!-- Bottom Nav -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-screen="Home" onclick="App.navigate('Home')">
+                <span class="nav-icon">🏠</span><span class="nav-label">الرئيسية</span>
+            </button>
+            <button class="nav-item" data-screen="Focus" onclick="App.navigate('Focus')">
+                <span class="nav-icon">⏱️</span><span class="nav-label">تركيز</span>
+            </button>
+            <button class="nav-spacer"></button>
+            <button class="nav-item" data-screen="Learn" onclick="App.navigate('Learn')">
+                <span class="nav-icon">📚</span><span class="nav-label">تعلم</span>
+            </button>
+            <button class="nav-item" data-screen="Stats" onclick="App.navigate('Stats')">
+                <span class="nav-icon">📊</span><span class="nav-label">إحصائيات</span>
+            </button>
+            <button class="nav-item" data-screen="Settings" onclick="App.navigate('Settings')">
+                <span class="nav-icon">⚙️</span><span class="nav-label">الإعدادات</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ===== Bottom Sheet: Add/Edit Task ===== -->
+    <div class="sheet-overlay" id="sheetOverlay" onclick="Modal.close()"></div>
+    <div class="bottom-sheet" id="taskSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 id="sheetTitle">➕ مهمة جديدة</h2>
+            <button class="sheet-close" onclick="Modal.close()">✕</button>
+        </div>
+        <div class="sheet-body">
+            <input type="hidden" id="taskId">
+            <div class="field"><label>عنوان المهمة *</label><input type="text" id="taskTitleInput" placeholder="مثال: حصة رياضيات" maxlength="100"></div>
+            <div class="field"><label>الوصف</label><textarea id="taskDescInput" placeholder="تفاصيل..." maxlength="500" rows="2"></textarea></div>
+
+            <!-- Tags -->
+            <div class="field">
+                <label>🏷️ الوسوم (افصل بفاصلة)</label>
+                <input type="text" id="taskTagsInput" placeholder="رياضيات, مهم, سهل">
+                <div class="tags-suggest" id="tagsSuggest"></div>
+            </div>
+
+            <!-- نظام المواعيد المتعددة -->
+            <div class="field">
+                <div class="schedules-header">
+                    <label>📅 المواعيد</label>
+                    <button class="btn btn-sm btn-outline" onclick="Schedules.add()">+ إضافة موعد</button>
+                </div>
+                <div class="schedules-list" id="schedulesList"></div>
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label>📂 التصنيف</label>
+                    <select id="taskCategoryInput">
+                        <option value="درس">📚 درس</option>
+                        <option value="امتحان">📝 امتحان</option>
+                        <option value="واجب">📖 واجب</option>
+                        <option value="موعد">📅 موعد</option>
+                        <option value="شخصي">👤 شخصي</option>
+                        <option value="أخرى">📌 أخرى</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>⚡ الأولوية</label>
+                    <select id="taskPriorityInput">
+                        <option value="medium">⚡ متوسطة</option>
+                        <option value="high">🔴 عالية</option>
+                        <option value="low">🟢 منخفضة</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>🔁 التكرار</label>
+                <select id="taskRepeatInput">
+                    <option value="none">بدون تكرار</option>
+                    <option value="daily">يومياً</option>
+                    <option value="weekly">أسبوعياً</option>
+                    <option value="monthly">شهرياً</option>
+                </select>
+            </div>
+
+            <!-- Subtasks -->
+            <div class="field">
+                <label>📋 المهام الفرعية</label>
+                <div class="subtasks-list" id="subtasksList"></div>
+                <div class="subtask-add">
+                    <input type="text" id="subtaskInput" placeholder="أضف مهمة فرعية..." onkeydown="if(event.key==='Enter'){event.preventDefault();Subtasks.add();}">
+                    <button class="btn btn-sm btn-primary" onclick="Subtasks.add()">+</button>
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            <div class="field">
+                <label>📎 المرفقات</label>
+                <div class="attachments-list" id="attachmentsList"></div>
+                <div class="attachment-actions">
+                    <button class="btn btn-sm btn-outline" onclick="Attachments.addPhoto()">📷 صورة</button>
+                    <button class="btn btn-sm btn-outline" onclick="Attachments.addNote()">🎤 صوت</button>
+                    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="Attachments.handlePhoto(event)">
+                </div>
+            </div>
+
+
+        </div>
+        <div class="sheet-footer">
+            <button class="btn btn-primary btn-block" onclick="Tasks.save()">💾 حفظ</button>
+        </div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Task Detail ===== -->
+    <div class="sheet-overlay" id="detailOverlay" onclick="Modal.closeDetail()"></div>
+    <div class="bottom-sheet" id="detailSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 id="detailTitle">التفاصيل</h2>
+            <button class="sheet-close" onclick="Modal.closeDetail()">✕</button>
+        </div>
+        <div class="sheet-body" id="detailBody"></div>
+        <div class="sheet-footer" id="detailFooter"></div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Subject ===== -->
+    <div class="sheet-overlay" id="subjectOverlay" onclick="Subjects.closeAdd()"></div>
+    <div class="bottom-sheet" id="subjectSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2 id="subjectSheetTitle">➕ مادة جديدة</h2><button class="sheet-close" onclick="Subjects.closeAdd()">✕</button></div>
+        <div class="sheet-body">
+            <input type="hidden" id="subjectId">
+            <div class="field"><label>اسم المادة *</label><input type="text" id="subjectNameInput" placeholder="مثال: الرياضيات"></div>
+            <div class="field"><label>المعلم</label><input type="text" id="subjectTeacherInput" placeholder="اسم المعلم"></div>
+            <div class="field-row">
+                <div class="field"><label>🎨 اللون</label><input type="color" id="subjectColorInput" value="#6C63FF"></div>
+                <div class="field"><label>📅 يوم الامتحان</label><input type="date" id="subjectExamInput"></div>
+            </div>
+            <div class="field"><label>📖 عدد الفصول المكتملة</label><input type="number" id="subjectChaptersInput" value="0" min="0"></div>
+            <div class="field"><label>📚 إجمالي الفصول</label><input type="number" id="subjectTotalChaptersInput" value="10" min="1"></div>
+        </div>
+        <div class="sheet-footer"><button class="btn btn-primary btn-block" onclick="Subjects.save()">💾 حفظ</button></div>
+    </div>
+
+    <!-- ===== Bottom Sheet: GPA ===== -->
+    <div class="sheet-overlay" id="gpaOverlay" onclick="GPA.closeAdd()"></div>
+    <div class="bottom-sheet" id="gpaSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2>➕ إضافة درجة</h2><button class="sheet-close" onclick="GPA.closeAdd()">✕</button></div>
+        <div class="sheet-body">
+            <div class="field"><label>المادة</label><input type="text" id="gpaSubjectInput" placeholder="اسم المادة"></div>
+            <div class="field-row">
+                <div class="field"><label>الدرجة</label><input type="number" id="gpaScoreInput" placeholder="95" min="0" max="100"></div>
+                <div class="field"><label>الساعات المعتمدة</label><input type="number" id="gpaCreditsInput" value="3" min="1" max="6"></div>
+            </div>
+            <div class="field"><label>الفصل الدراسي</label><input type="text" id="gpaTermInput" placeholder="الفصل الأول 2025"></div>
+        </div>
+        <div class="sheet-footer"><button class="btn btn-primary btn-block" onclick="GPA.save()">💾 حفظ</button></div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Goal ===== -->
+    <div class="sheet-overlay" id="goalOverlay" onclick="Goals.closeAdd()"></div>
+    <div class="bottom-sheet" id="goalSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2>➕ هدف جديد</h2><button class="sheet-close" onclick="Goals.closeAdd()">✕</button></div>
+        <div class="sheet-body">
+            <div class="field"><label>الهدف</label><input type="text" id="goalNameInput" placeholder="إنجاز 20 مهمة هذا الأسبوع"></div>
+            <div class="field-row">
+                <div class="field"><label>الهدف الرقمي</label><input type="number" id="goalTargetInput" value="20" min="1"></div>
+                <div class="field">
+                    <label>النوع</label>
+                    <select id="goalTypeInput">
+                        <option value="weekly">أسبوعي</option>
+                        <option value="monthly">شهري</option>
+                        <option value="custom">مخصص</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field"><label>التصنيف المرتبط</label>
+                <select id="goalCategoryInput">
+                    <option value="all">كل التصنيفات</option>
+                    <option value="درس">درس</option>
+                    <option value="امتحان">امتحان</option>
+                    <option value="واجب">واجب</option>
+                    <option value="موعد">موعد</option>
+                    <option value="شخصي">شخصي</option>
+                    <option value="أخرى">أخرى</option>
+                </select>
+            </div>
+        </div>
+        <div class="sheet-footer"><button class="btn btn-primary btn-block" onclick="Goals.save()">💾 حفظ</button></div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Note ===== -->
+    <div class="sheet-overlay" id="noteOverlay" onclick="Notes.closeAdd()"></div>
+    <div class="bottom-sheet" id="noteSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2 id="noteSheetTitle">📝 ملاحظة</h2><button class="sheet-close" onclick="Notes.closeAdd()">✕</button></div>
+        <div class="sheet-body">
+            <input type="hidden" id="noteId">
+            <div class="field"><label>العنوان</label><input type="text" id="noteTitleInput" placeholder="عنوان الملاحظة"></div>
+            <div class="field"><label>المحتوى</label><textarea id="noteContentInput" rows="8" placeholder="اكتب ملاحظتك هنا..."></textarea></div>
+            <div class="field"><label>🎨 اللون</label><input type="color" id="noteColorInput" value="#FFA502"></div>
+        </div>
+        <div class="sheet-footer"><button class="btn btn-primary btn-block" onclick="Notes.save()">💾 حفظ</button></div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Templates ===== -->
+    <div class="sheet-overlay" id="templatesOverlay" onclick="Templates.close()"></div>
+    <div class="bottom-sheet" id="templatesSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2>📋 قوالب جاهزة</h2><button class="sheet-close" onclick="Templates.close()">✕</button></div>
+        <div class="sheet-body" id="templatesBody"></div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Theme Picker ===== -->
+    <div class="sheet-overlay" id="themesOverlay" onclick="Themes.close()"></div>
+    <div class="bottom-sheet" id="themesSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2>🌈 اختر اللون</h2><button class="sheet-close" onclick="Themes.close()">✕</button></div>
+        <div class="sheet-body">
+            <div class="color-grid" id="colorGrid"></div>
+        </div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Language Picker ===== -->
+    <div class="sheet-overlay" id="langOverlay" onclick="I18n.close()"></div>
+    <div class="bottom-sheet" id="langSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2>🌍 اختر اللغة</h2><button class="sheet-close" onclick="I18n.close()">✕</button></div>
+        <div class="sheet-body">
+            <div class="lang-list">
+                <div class="lang-item" onclick="I18n.set('ar')"><span>🇸🇦</span><span>العربية</span></div>
+                <div class="lang-item" onclick="I18n.set('en')"><span>🇬🇧</span><span>English</span></div>
+                <div class="lang-item" onclick="I18n.set('fr')"><span>🇫🇷</span><span>Français</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Bottom Sheet: PIN Setup ===== -->
+    <div class="sheet-overlay" id="pinOverlay" onclick="PIN.closeSetup()"></div>
+    <div class="bottom-sheet" id="pinSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2>🔒 قفل التطبيق</h2><button class="sheet-close" onclick="PIN.closeSetup()">✕</button></div>
+        <div class="sheet-body">
+            <p id="pinMessage">أدخل رمز PIN الجديد (4 أرقام)</p>
+            <div class="pin-dots" id="pinSetupDots"><span></span><span></span><span></span><span></span></div>
+            <div class="pin-pad" id="pinSetupPad">
+                <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button>
+                <button data-n="4">4</button><button data-n="5">5</button><button data-n="6">6</button>
+                <button data-n="7">7</button><button data-n="8">8</button><button data-n="9">9</button>
+                <button class="empty"></button><button data-n="0">0</button><button class="del" data-action="del">⌫</button>
+            </div>
+            <button class="btn btn-danger btn-block" onclick="PIN.disable()" id="pinDisableBtn" style="display:none">إلغاء القفل</button>
+        </div>
+    </div>
+
+    <!-- ===== Bottom Sheet: Select Pomodoro Task ===== -->
+    <div class="sheet-overlay" id="pomoTasksOverlay" onclick="Pomodoro.closeTaskSelect()"></div>
+    <div class="bottom-sheet" id="pomoTasksSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header"><h2>اختر مهمة للتركيز</h2><button class="sheet-close" onclick="Pomodoro.closeTaskSelect()">✕</button></div>
+        <div class="sheet-body" id="pomoTasksBody"></div>
+    </div>
+
+    <!-- ===== Confirm Dialog ===== -->
+    <div class="confirm-overlay" id="confirmDialog">
+        <div class="confirm-box">
+            <div class="confirm-icon">⚠️</div>
+            <h3 id="confirmTitle">تأكيد</h3>
+            <p id="confirmMessage">هل أنت متأكد؟</p>
+            <div class="confirm-actions">
+                <button class="btn btn-outline" onclick="Modal.closeConfirm()">إلغاء</button>
+                <button class="btn btn-danger" id="confirmYes">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+
+    <!-- Scripts -->
+    <script src="js/app-config.js"></script>
+    <script src="js/android-bridge.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/features/confetti.js"></script>
+    <script src="js/features/undo.js"></script>
+    <script src="js/features/themes.js"></script>
+    <script src="js/features/i18n.js"></script>
+    <script src="js/features/pin.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/features/subtasks.js"></script>
+    <script src="js/features/attachments.js"></script>
+    <script src="js/features/schedules.js"></script>
+    <script src="js/tasks.js"></script>
+    <script src="js/reminders.js"></script>
+    <script src="js/features/pomodoro.js"></script>
+    <script src="js/features/badges.js"></script>
+    <script src="js/features/subjects.js"></script>
+    <script src="js/features/gpa.js"></script>
+    <script src="js/features/notes.js"></script>
+    <script src="js/features/goals.js"></script>
+    <script src="js/features/calendar.js"></script>
+    <script src="js/features/reports.js"></script>
+    <script src="js/features/templates.js"></script>
+    <script src="js/features/suggestions.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
